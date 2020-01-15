@@ -9,6 +9,23 @@
     <div class="canvas"></div>
 
     <!-- SCRIPTS -->
+    <script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-firestore.js"></script>
+    <script>
+      // Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyCWt2_PutWeQyjbZClPM1rX_NepAQGm9Dg",
+        authDomain: "d3-firebase-333e1.firebaseapp.com",
+        databaseURL: "https://d3-firebase-333e1.firebaseio.com",
+        projectId: "d3-firebase-333e1",
+        storageBucket: "d3-firebase-333e1.appspot.com",
+        messagingSenderId: "268086773779",
+        appId: "1:268086773779:web:a85755dd9be497121717e6"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
     <script src="d3/d3.js"></script>
     <script src="index.js"></script>
   </body>

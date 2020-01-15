@@ -17,53 +17,91 @@ const xAxisGroup = graph.append('g')
   .attr('transform', `translate(0, ${graphHeight})`);
 const yAxisGroup = graph.append('g');
 
-d3.json('menu.json').then(data => {
-  const max = d3.max(data, item => item.orders);
+// create Linear Scale
+const y = d3.scaleLinear()
+  .range([graphHeight, 0]);
 
-  // create Linear Scale
-  const y = d3.scaleLinear()
-    .domain([0, max])
-    .range([graphHeight, 0]);
+// create Band Scale
+const x = d3.scaleBand()
+  .range([0, graphWidth])
+  .paddingInner(0.2)
+  .paddingOuter(0.2);
 
-  // create Band Scale
-  const x = d3.scaleBand()
-    .domain(data.map(item => item.name))
-    .range([0, graphWidth])
-    .paddingInner(0.2)
-    .paddingOuter(0.2);
+// create axes
+const xAxis = d3.axisBottom(x);
+const yAxis = d3.axisLeft(y)
+  .ticks(3)
+  .tickFormat(d => d + ' orders');
 
-  // join data to rects
+// updates x-axis text
+xAxisGroup.selectAll('text')
+  .attr('transform', 'rotate(-40)')
+  .attr('text-anchor', 'end')
+  .attr('fill', 'orange');
+
+
+// UPDATE FUNCTION
+const update = (data) => {
+  // 1. update scales (domains) if they rely on our data
+  y.domain([0, d3.max(data, item => item.orders)]);
+  x.domain(data.map(item => item.name));
+
+  // 2. join data to elements
   const rects = graph.selectAll('rect')
     .data(data);
 
-  // add attributes to rects already in the DOM
+  // 3. remove unwanted (if any) shapes using exit selection
+  rects.exit().remove();
+
+  // 4. add attributes to rects already in the DOM
   rects
     .attr('width', x.bandwidth)
-    .attr('height', d => graphHeight - y(d.orders))
+    .attr('fill', 'orange')
+
     .attr('x', d => x(d.name))
     .attr('y', d => y(d.orders))
-    .attr('fill', 'orange');
+    
+    .attr('height', d => graphHeight - y(d.orders));
 
-  // append the enter selection to DOM
+  // 5. append the enter selection to DOM
   rects.enter()
     .append('rect')
       .attr('width', x.bandwidth)
-      .attr('height', d => graphHeight - y(d.orders))
+      .attr('fill', 'orange')
+      
       .attr('x', d => x(d.name))
       .attr('y', d => y(d.orders))
-      .attr('fill', 'orange');
+      
+      .attr('height', d => graphHeight - y(d.orders));
 
-  // create and call axes
-  const xAxis = d3.axisBottom(x);
-  const yAxis = d3.axisLeft(y)
-    .ticks(3)
-    .tickFormat(d => d + ' orders');
-
+  // call axes
   xAxisGroup.call(xAxis);
   yAxisGroup.call(yAxis);
+}
 
-  xAxisGroup.selectAll('text')
-    .attr('transform', 'rotate(-40)')
-    .attr('text-anchor', 'end')
-    .attr('fill', 'orange');
+
+// FETCH DATA
+let data = [];
+db.collection('dishes').onSnapshot(res => {
+
+  res.docChanges().forEach(change => {
+    const doc = {...change.doc.data(), id: change.doc.id};
+
+    switch(change.type) {
+      case 'added':
+        data.push(doc);
+        break;
+      case 'modified':
+        const index = data.findIndex(item => item.id == doc.id);
+        data[index] = doc;
+        break;
+      case 'removed':
+        data = data.filter(item => item.id != doc.id);
+        break;
+      default:
+        break;
+    }
+
+    update(data);
+  });
 });
