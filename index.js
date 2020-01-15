@@ -39,6 +39,7 @@ xAxisGroup.selectAll('text')
   .attr('text-anchor', 'end')
   .attr('fill', 'orange');
 
+  const t = d3.transition().duration(500);
 
 // UPDATE FUNCTION
 const update = (data) => {
@@ -57,22 +58,24 @@ const update = (data) => {
   rects
     .attr('width', x.bandwidth)
     .attr('fill', 'orange')
-
     .attr('x', d => x(d.name))
-    .attr('y', d => y(d.orders))
-    
-    .attr('height', d => graphHeight - y(d.orders));
+    // being merged
+    // .transition(t)
+    //   .attr('y', d => y(d.orders))
+    //   .attr('height', d => graphHeight - y(d.orders));
 
   // 5. append the enter selection to DOM
   rects.enter()
     .append('rect')
       .attr('width', x.bandwidth)
+      .attr('height', 0)
       .attr('fill', 'orange')
-      
       .attr('x', d => x(d.name))
-      .attr('y', d => y(d.orders))
-      
-      .attr('height', d => graphHeight - y(d.orders));
+      .attr('y', graphHeight)
+      .merge(rects)
+      .transition(t)
+        .attr('y', d => y(d.orders))
+        .attr('height', d => graphHeight - y(d.orders));
 
   // call axes
   xAxisGroup.call(xAxis);
